@@ -1,0 +1,224 @@
+MATCH (n)-[r]->(m)
+RETURN n, r, m;
+
+MATCH p=()-[:TEACHES]->() RETURN p LIMIT 25;
+
+MATCH (n) 
+WHERE n.specialization IS NOT NULL
+RETURN DISTINCT "node" as entity, n.specialization AS specialization LIMIT 25
+UNION ALL 
+MATCH ()-[r]-() 
+WHERE r.specialization IS NOT NULL
+RETURN DISTINCT "relationship" AS entity, r.specialization AS specialization LIMIT 25;
+
+MATCH p=()-[:TEACHES]->() RETURN p LIMIT 25;
+
+MATCH p=()-[:OFFERS]->() RETURN p LIMIT 25;
+
+MATCH p=()-[:ENROLLED_IN]->() RETURN p LIMIT 25;
+
+MATCH p=()-[:BELONGS_TO]->() RETURN p LIMIT 25;
+
+MATCH (n:Student) RETURN n LIMIT 25;
+
+MATCH (n:Faculty) RETURN n LIMIT 25;
+
+MATCH (n:Department) RETURN n LIMIT 25;
+
+MATCH (n:Course) RETURN n LIMIT 25;
+
+MATCH p=()-[:TEACHES]->() RETURN p LIMIT 25;
+
+MATCH p=()-[:OFFERS]->() RETURN p LIMIT 25;
+
+MATCH p=()-[:ENROLLED_IN]->() RETURN p LIMIT 25;
+
+MATCH p=()-[:BELONGS_TO]->() RETURN p LIMIT 25;
+
+MATCH (n:Student) RETURN n LIMIT 25;
+
+MATCH (n:Faculty) RETURN n LIMIT 25;
+
+MATCH (n:Department) RETURN n LIMIT 25;
+
+MATCH (n:Course) RETURN n LIMIT 25;
+
+MATCH ()-[r]->()
+RETURN type(r) AS RelationshipType, count(r) AS Total
+ORDER BY RelationshipType;
+
+MATCH (s:Student)-[:ENROLLED_IN]->(:Course {title:'Graph Analytics'})
+MATCH (s)-[:ENROLLED_IN]->(other:Course)
+WHERE other.title <> 'Graph Analytics'
+RETURN DISTINCT s.name AS Student,
+       collect(other.title) AS OtherCourses;
+
+MATCH (s:Student)-[r:ENROLLED_IN]->(c:Course {title:'NoSQL Databases'})
+RETURN s.name AS Student,
+       r.semesterEnrolled AS Semester,
+       r.grade AS Grade;
+
+MATCH (f:Faculty {name:'Dr. Meera Sen'})-[:TEACHES]->(c:Course)
+RETURN c.title AS Course;
+
+MATCH (s:Student)-[:ENROLLED_IN]->(c:Course {title:'Graph Analytics'})
+RETURN s.name AS Student;
+
+MATCH (s:Student)-[:BELONGS_TO]->(d:Department {name:'Computer Science'})
+RETURN s.name AS Student;
+
+MATCH (d:Department {name:'Information Technology'})-[:OFFERS]->(c:Course)
+RETURN c.title AS Course;
+
+MATCH (c:Course)
+WHERE c.credits > 3
+RETURN c.title AS Course, c.credits AS Credits;
+
+MATCH (c:Course)
+WHERE c.credits > 3
+RETURN c.title AS Course, c.credits AS Credits;
+
+MATCH (s:Student)
+WHERE s.semester = 5
+RETURN s.name AS Student, s.semester AS Semester;
+
+MATCH (a)-[r]->(b)
+RETURN labels(a) AS FromLabel,
+       type(r) AS Relationship,
+       labels(b) AS ToLabel,
+       count(r) AS Total
+ORDER BY Relationship;
+
+MATCH (n)
+RETURN labels(n) AS Label, count(n) AS Total
+ORDER BY Label;
+
+MATCH (n)-[r]->(m)
+RETURN n, r, m;
+
+MATCH ()-[r]->()
+RETURN type(r) AS RelationshipType, count(r) AS Total
+ORDER BY RelationshipType;
+
+MATCH (d:Department)
+UNWIND
+CASE d.name
+  WHEN 'Computer Science' THEN [
+    'Database Management Systems',
+    'Data Mining',
+    'NoSQL Databases'
+  ]
+  WHEN 'Information Technology' THEN [
+    'Graph Analytics',
+    'Big Data Analytics'
+  ]
+  ELSE []
+END AS courseName
+MATCH (c:Course {title: courseName})
+CREATE (d)-[:OFFERS]->(c);
+
+MATCH (d:Department), (c:Course)
+WHERE
+(d.name = 'Computer Science' AND c.title IN ['Database Management Systems', 'Data Mining', 'NoSQL Databases'])
+OR
+(d.name = 'Information Technology' AND c.title IN ['Graph Analytics', 'Big Data Analytics'])
+CREATE (d)-[:OFFERS]->(c);
+
+MATCH (s:Student)
+UNWIND
+CASE s.name
+  WHEN 'Aarav Sharma' THEN 'Computer Science'
+  WHEN 'Priya Das' THEN 'Computer Science'
+  WHEN 'Rahul Verma' THEN 'Computer Science'
+  WHEN 'Sneha Roy' THEN 'Information Technology'
+  WHEN 'Arjun Patel' THEN 'Information Technology'
+  ELSE null
+END AS deptName
+MATCH (d:Department {name: deptName})
+CREATE (s)-[:BELONGS_TO]->(d);
+
+MATCH (f:Faculty)
+UNWIND
+CASE f.name
+  WHEN 'Dr. Meera Sen' THEN ['Database Management Systems', 'NoSQL Databases']
+  WHEN 'Dr. Amit Roy' THEN ['Graph Analytics', 'Data Mining', 'Big Data Analytics']
+  ELSE []
+END AS courseName
+MATCH (c:Course {title: courseName})
+CREATE (f)-[:TEACHES {academicYear: '2026-27'}]->(c);
+
+MATCH (s:Student), (d:Department)
+WHERE
+(s.name IN ['Aarav Sharma', 'Priya Das', 'Rahul Verma'] AND d.name = 'Computer Science')
+OR
+(s.name IN ['Sneha Roy', 'Arjun Patel'] AND d.name = 'Information Technology')
+CREATE (s)-[:BELONGS_TO]->(d);
+
+MATCH (f:Faculty), (c:Course)
+WHERE
+(f.name = 'Dr. Meera Sen' AND c.title IN ['Database Management Systems', 'NoSQL Databases'])
+OR
+(f.name = 'Dr. Amit Roy' AND c.title IN ['Graph Analytics', 'Data Mining', 'Big Data Analytics'])
+CREATE (f)-[:TEACHES {academicYear: '2026-27'}]->(c);
+
+MATCH (s:Student)
+UNWIND
+CASE s.name
+  WHEN 'Aarav Sharma' THEN ['Graph Analytics', 'Database Management Systems', 'NoSQL Databases']
+  WHEN 'Priya Das' THEN ['Graph Analytics', 'Data Mining']
+  WHEN 'Rahul Verma' THEN ['Database Management Systems', 'Big Data Analytics']
+  WHEN 'Sneha Roy' THEN ['Data Mining', 'NoSQL Databases']
+  WHEN 'Arjun Patel' THEN ['Graph Analytics', 'Big Data Analytics']
+  ELSE []
+END AS courseName
+MATCH (c:Course {title: courseName})
+CREATE (s)-[:ENROLLED_IN {
+  semesterEnrolled: s.semester,
+  grade: 'Not Published'
+}]->(c);
+
+MATCH (s:Student), (c:Course)
+WHERE
+(s.name = 'Aarav Sharma' AND c.title IN ['Graph Analytics', 'Database Management Systems', 'NoSQL Databases'])
+OR
+(s.name = 'Priya Das' AND c.title IN ['Graph Analytics', 'Data Mining'])
+OR
+(s.name = 'Rahul Verma' AND c.title IN ['Database Management Systems', 'Big Data Analytics'])
+OR
+(s.name = 'Sneha Roy' AND c.title IN ['Data Mining', 'NoSQL Databases'])
+OR
+(s.name = 'Arjun Patel' AND c.title IN ['Graph Analytics', 'Big Data Analytics'])
+CREATE (s)-[:ENROLLED_IN {
+  semesterEnrolled: s.semester,
+  grade: 'Not Published'
+}]->(c);
+
+MATCH (n)
+RETURN labels(n) AS Label, count(n) AS Total
+ORDER BY Label;
+
+MATCH (n)
+RETURN labels(n) AS Label, count(n) AS Total
+ORDER BY Label;
+
+CREATE
+(:Department {departmentId:'D101', name:'Computer Science', building:'Block A'}),
+(:Department {departmentId:'D102', name:'Information Technology', building:'Block B'});
+
+CREATE
+(:Course {courseCode:'CS301', title:'Graph Analytics', credits:3, level:'Advanced'}),
+(:Course {courseCode:'CS302', title:'Database Management Systems', credits:4, level:'Core'}),
+(:Course {courseCode:'CS303', title:'Data Mining', credits:3, level:'Advanced'}),
+(:Course {courseCode:'CS304', title:'Big Data Analytics', credits:4, level:'Advanced'}),
+(:Course {courseCode:'CS305', title:'NoSQL Databases', credits:3, level:'Core'});
+
+CREATE
+(:Faculty {facultyId:'F101', name:'Dr. Meera Sen', designation:'Associate Professor', specialization:'Database Systems'}),
+(:Faculty {facultyId:'F102', name:'Dr. Amit Roy', designation:'Assistant Professor', specialization:'Data Analytics'});
+
+CREATE
+(:Student {studentId:'S101', name:'Aarav Sharma', semester:5, email:'aarav@univ.edu'}),
+(:Student {studentId:'S102', name:'Priya Das', semester:5, email:'priya@univ.edu'}),
+(:Student {studentId:'S103', name:'Rahul Verma', semester:3, email:'rahul@univ.edu'}),
+(:Student {studentId:'S104', name:'Sneha Roy', semester:3, email:'sneha@univ.edu'}),
+(:Student {studentId:'S105', name:'Arjun Patel', semester:5, email:'arjun@univ.edu'});
